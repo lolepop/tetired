@@ -12,7 +12,6 @@ namespace Graphics
 			for (int xs = 0; xs < scale * 2; xs++)
 			{
 				mvaddwstr(y * scale + ys, x * scale * 2 + xs, (const wchar_t*)&c);
-				//mvaddwstr(0, 0, L"@");
 			}
 		}
 	}
