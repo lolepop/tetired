@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include <array>
 #include <tuple>
 #include <random>
-#include <functional>
 
 #include "Matrix.h"
 #include "Map.h"
+#include "IDrawable.h"
 
 #define BLOCKMATRIX 4
 
@@ -22,7 +22,7 @@ enum class TETRIMINO
 	Z
 };
 
-class Block
+class Block : public IDrawable<BLOCKMATRIX, BLOCKMATRIX>
 {
 public:
 
@@ -36,15 +36,8 @@ public:
 	void rotateBlock(bool clockwise);
 	bool step();
 	bool blockMapIntersect(int xOff=0, int yOff=0);
-	//bool bottomHit();
-	void drawBlock();
 	void placeBlock();
 	bool tryMove(int x, int y);
-
-	std::tuple<int, int> getPos()
-	{
-		return std::make_tuple(x, y);
-	}
 
 	void printBlockMatrix()
 	{
@@ -60,11 +53,19 @@ public:
 
 	Block(Map* map);
 
+	std::tuple<int, int> getOffset() { return std::make_tuple(x, y); }
+	std::array<char, BLOCKMATRIX*BLOCKMATRIX> getPixels() { return block; }
+	bool removeBackground() { return false; }
+	std::vector<wchar_t> getCharMap() { return charMap; }
+
 private:
 	Map* map;
 
-	// // mersenne_twister
-	//std::uniform_int_distribution<int> idist(0, 100); // [0,100]
+	const std::vector<wchar_t> charMap = {
+		L' ',
+		L'\u2593'
+	};
+
 };
 
 struct

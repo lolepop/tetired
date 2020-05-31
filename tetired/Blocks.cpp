@@ -48,6 +48,9 @@ Block* Block::getBlock(Map* map, TETRIMINO type)
 		break;
 	}
 
+	block->x = (int)(WIDTH / 2.0 - block->size / 2.0);
+	block->y = -2;
+
 	block->block = tmp;
 
 	return block;
@@ -84,27 +87,18 @@ bool Block::blockMapIntersect(int xOff, int yOff)
 		{
 			if (block[yLoc * BLOCKMATRIX + xLoc] != 0)
 			{
-				// TODO: check if outside of map
-				if (x + xLoc + xOff < 0 || x + xLoc + xOff > WIDTH - 1 || y + yLoc + yOff > HEIGHT - 1)
+				int xabs = x + xLoc + xOff;
+				int yabs = y + yLoc + yOff;
+
+				if (xabs < 0 || xabs > WIDTH - 1 || yabs > HEIGHT - 1)
 					return true;
-				if (map->map[(y + yLoc + yOff) * WIDTH + x + xLoc + xOff] != 0)
+
+				if (yabs >= 0 && map->map[yabs * WIDTH + xabs] != 0)
 					return true;
 			}
 		}
 	}
 	return false;
-}
-
-void Block::drawBlock()
-{
-	for (int yLoc = 0; yLoc < size; yLoc++)
-	{
-		for (int xLoc = 0; xLoc < size; xLoc++)
-		{
-			if (block[yLoc * BLOCKMATRIX + xLoc] != 0)
-				mvprintw(y + yLoc, x + xLoc, "O");
-		}
-	}
 }
 
 void Block::placeBlock()
@@ -113,6 +107,12 @@ void Block::placeBlock()
 	{
 		for (int xLoc = 0; xLoc < size; xLoc++)
 		{
+			if (y < 0)
+			{
+				map->doLose();
+				return;
+			}
+
 			if (block[yLoc * BLOCKMATRIX + xLoc] != 0)
 				map->map[(y + yLoc) * WIDTH + x + xLoc] = 1;
 		}

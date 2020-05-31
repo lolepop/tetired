@@ -1,9 +1,13 @@
+#define PDC_WIDE
+
 #include <iostream>
 #include <Windows.h>
 #include <chrono>
 #include "curses.h"
 #include "Blocks.h"
 #include "Map.h"
+#include "Graphics.h"
+
 
 using namespace std::chrono;
 
@@ -15,46 +19,41 @@ Block* currBlock;
 void update();
 void draw(int delta);
 
-//int timeNow();
-
 time_point<high_resolution_clock> lastTime = high_resolution_clock::now();
 double blockTimer = 0;
 
 time_point<high_resolution_clock> timeNow()
 {
 	return high_resolution_clock::now();
-	//duration<double> a = high_resolution_clock::now().time_since_epoch();
+}
+
+void init()
+{
+	map = new Map();
+	engine = std::mt19937(std::random_device()());
+	currBlock = Block::getRandomBlock(map, &engine);
+
+	HWND wnd = GetConsoleWindow();
+	RECT a;
+	GetWindowRect(wnd, &a);
+
+	MoveWindow(wnd, a.left, a.top, 800, 800, TRUE);
 }
 
 int main()
 {
-	map = new Map();
-	
-	engine = std::mt19937(std::random_device()());
+	init();
 
-	currBlock = Block::getRandomBlock(map, &engine);
-	//currBlock = Block::getBlock(map, TETRIMINO::I);
-	//currBlock->printBlockMatrix();
-	//printf("\n");
-	//currBlock->rotateBlock(false);
-	//currBlock->printBlockMatrix();
-	//printf("\n");
-	//currBlock->rotateBlock(true);
-	//currBlock->printBlockMatrix();
-	
-	//Sleep(10000);
-	//Block* block1 = Block::getBlock(TETRIMINO::Z);
-	//block1->printBlockMatrix();
-
-	char title[50];
-
+	setlocale(LC_ALL, "");
 	initscr();
 	raw();
 	keypad(stdscr, TRUE);
 	nodelay(stdscr, TRUE);
 
+	char title[50];
+
 	// game loop
-	while (true)
+	while (!map->hasLost())
 	{
 		auto now = high_resolution_clock::now();
 		
@@ -69,7 +68,6 @@ int main()
 		update();
 		draw(delta);
 		refresh();
-		//Sleep(500);
 	}
 	endwin();
 
@@ -89,6 +87,9 @@ void control(wchar_t c)
 	case KEY_UP:
 		currBlock->rotateBlock(true);
 		break;
+	case KEY_DOWN:
+		currBlock->rotateBlock(false);
+		break;
 	default:
 		break;
 	}
@@ -97,6 +98,7 @@ void control(wchar_t c)
 void update()
 {
 	control(getch());
+	// lazy
 	if (blockTimer >= 300)
 	{
 		blockTimer -= 300;
@@ -114,7 +116,6 @@ void update()
 
 void draw(int delta)
 {
-	map->drawMap();
-	currBlock->drawBlock();
-	//mvprintw(5, 40, "%i fps, %i, %i", delta, currBlock->x, currBlock->y);
+	Graphics::draw(*map);
+	Graphics::draw(*currBlock);
 }
